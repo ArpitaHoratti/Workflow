@@ -1,9 +1,9 @@
-require("dotenv").config();
+//require("dotenv").config();
 
 const express=require("express");
 const cors=require("cors");
 
-const connectDB=require("./config/db");
+//const connectDB=require("./config/db");
 
 const app=express();
 
@@ -21,6 +21,7 @@ app.listen(process.env.PORT,()=>{
 
 app.use(express.json());
 
+app.use("/api/reports", require("./routes/reportRoutes"));
 //app.use("/api/auth", require("./routes/authRoutes"));
 
 //app.use("/api/profile", require("./routes/profileRoute"));
