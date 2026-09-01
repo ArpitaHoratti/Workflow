@@ -206,7 +206,6 @@ const generateReport = async (req, res) => {
 
             message:
                 "Failed to generate report",
-
             error:
                 error.message
 
