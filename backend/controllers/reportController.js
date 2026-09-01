@@ -2,10 +2,15 @@ const fs = require("fs");
 const path = require("path");
 const PizZip = require("pizzip");
 const Docxtemplater = require("docxtemplater");
+const ImageModule = require("docxtemplater-image");
 
 const generateReport = async (req, res) => {
     try {
-        // 1. Get data entered by the user
+        console.log("BODY:", req.body);
+        console.log("FILES:", req.files);
+        // ==========================================
+        // 1. GET TEXT DATA
+        // ==========================================
         const {
             topic,
             date,
@@ -16,110 +21,197 @@ const generateReport = async (req, res) => {
             outcomeofevent,
             description,
             votethanks,
-            participants,
+            participants
         } = req.body;
 
 
-        // 2. Location of your Word template
+        // ==========================================
+        // 2. GET UPLOADED IMAGES
+        // ==========================================
+
+        const photo1 = req.files?.photo1?.[0];
+        const photo2 = req.files?.photo2?.[0];
+        const photo3 = req.files?.photo3?.[0];
+        const photo4 = req.files?.photo4?.[0];
+        // ==========================================
+        // 3. TEMPLATE PATH
+        // ==========================================
         const templatePath = path.join(
             __dirname,
-            "../templates/backend/templates/report-template.docx.doc"
+            "../templates/report-template.docx"
         );
+        
 
+        // ==========================================
+        // 4. CHECK TEMPLATE
+        // ==========================================
 
-        // 3. Check whether template exists
         if (!fs.existsSync(templatePath)) {
-            return res
-            .status(404)
-            .json({
+            return res.status(404).json({
                 success: false,
                 message: "Word template not found"
             });
         }
 
 
-        // 4. Read the Word template
-        const content = fs.readFileSync(templatePath, "binary");
+        // ==========================================
+        // 5. READ TEMPLATE
+        // ==========================================
+
+        const content = fs.readFileSync(
+            templatePath,
+            "binary"
+        );
 
 
-        // 5. Load the DOCX file
+        // ==========================================
+        // 6. LOAD DOCX
+        // ==========================================
+
         const zip = new PizZip(content);
 
 
-        // 6. Create Docxtemplater
+        // ==========================================
+        // 7. IMAGE MODULE
+        // ==========================================
+
+        const imageOptions = {
+         getImage(tagValue) {
+             return fs.readFileSync(tagValue);
+         },
+
+         getSize() {
+             return [300, 200];
+             }
+         };
+
+
+        // ==========================================
+        // 8. CREATE DOCXTEMPLATER
+        // ==========================================
+
         const doc = new Docxtemplater(zip, {
-            paragraphLoop: true,
-            linebreaks: true
-        });
+             paragraphLoop: true,
+             linebreaks: true,
+             modules: [
+                 new ImageModule(imageOptions)
+                 ]
+             });
 
 
-        // 7. Replace placeholders in the template
+        // ==========================================
+        // 9. RENDER TEXT + IMAGES
+        // ==========================================
+
         doc.render({
-            topic,
-            date,
-            month,
-            year,
-            resourcepersonal,
-            objectiveofevent,
-            outcomeofevent,
-            description,
-            votethanks,
-            participants,
-        });
+         topic,
+         date,
+         month,
+         year,
+         resourcepersonal,
+         objectiveofevent,
+         outcomeofevent,
+         description,
+         votethanks,
+         participants,
+
+         photo1: req.files?.photo1?.[0]?.path || "",
+         photo2: req.files?.photo2?.[0]?.path || "",
+         photo3: req.files?.photo3?.[0]?.path || "",
+         photo4: req.files?.photo4?.[0]?.path || ""
+});
 
 
-        // 8. Generate the final DOCX
+        // ==========================================
+        // 10. GENERATE DOCX BUFFER
+        // ==========================================
+
         const buffer = doc.getZip().generate({
             type: "nodebuffer"
         });
 
 
-        // 9. Create generated folder if it doesn't exist
+        // ==========================================
+        // 11. GENERATED FOLDER
+        // ==========================================
+
         const generatedFolder = path.join(
             __dirname,
             "../generated"
         );
 
         if (!fs.existsSync(generatedFolder)) {
-            fs.mkdirSync(generatedFolder, {
-                recursive: true
-            });
+
+            fs.mkdirSync(
+                generatedFolder,
+                {
+                    recursive: true
+                }
+            );
+
         }
 
 
-        // 10. Create output file
+        // ==========================================
+        // 12. OUTPUT FILE
+        // ==========================================
+
         const outputPath = path.join(
             generatedFolder,
             "college-report.docx"
         );
 
 
-        // 11. Save the generated document
-        fs.writeFileSync(outputPath, buffer);
+        // ==========================================
+        // 13. SAVE GENERATED REPORT
+        // ==========================================
+
+        fs.writeFileSync(
+            outputPath,
+            buffer
+        );
 
 
-        // 12. Download the file to user's device
+        // ==========================================
+        // 14. DOWNLOAD REPORT
+        // ==========================================
+
         res.download(
             outputPath,
             "college-report.docx",
             (error) => {
+
                 if (error) {
-                    console.error("Download error:", error);
+
+                    console.error(
+                        "Download error:",
+                        error
+                    );
+
                 }
+
             }
         );
 
     } catch (error) {
 
-        console.error("Report generation error:", error);
+        console.error(
+            "Report generation error:",
+            error
+        );
 
-        res
-        .status(500)
-        .json({
+        return res.status(500).json({
+
             success: false,
-            message: "Failed to generate report",
-            error: error.message
+
+            message:
+                "Failed to generate report",
+
+            error:
+                error.message
+
         });
+
     }
 };
 
