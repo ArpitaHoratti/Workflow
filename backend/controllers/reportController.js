@@ -47,7 +47,9 @@ const generateReport = async (req, res) => {
         // ==========================================
 
         if (!fs.existsSync(templatePath)) {
-            return res.status(404).json({
+            return res
+            .status(404)
+            .json({
                 success: false,
                 message: "Word template not found"
             });
@@ -96,7 +98,7 @@ const generateReport = async (req, res) => {
              modules: [
                  new ImageModule(imageOptions)
                  ]
-             });
+        });
 
 
         // ==========================================
@@ -119,7 +121,8 @@ const generateReport = async (req, res) => {
          photo2: req.files?.photo2?.[0]?.path || "",
          photo3: req.files?.photo3?.[0]?.path || "",
          photo4: req.files?.photo4?.[0]?.path || ""
-});
+
+        });
 
 
         // ==========================================
@@ -195,26 +198,28 @@ const generateReport = async (req, res) => {
 
     } catch (error) {
 
-        console.error(
-            "Report generation error:",
-            error
-        );
+    console.error("Report generation error:");
+    console.error(error);
 
-        return res.status(500).json({
+    //To Show detailed Docxtemplater errors
+    if (error.properties && error.properties.errors) {
 
-            success: false,
-
-            message:
-                "Failed to generate report",
-            error:
-                error.message
-
+        error.properties.errors.forEach((err, index) => {
+            console.error(`\nError ${index + 1}:`);
+            console.error(err);
         });
 
     }
+
+    return res
+    .status(500)
+    .json({
+        success: false,
+        message: "Failed to generate report",
+        error: error.message,
+        details: error.properties || null
+        });
+    }
 };
 
-
-module.exports = {
-    generateReport
-};
+module.exports = {generateReport};

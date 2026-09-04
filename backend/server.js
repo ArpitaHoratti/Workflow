@@ -10,6 +10,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use("/api/reports", require("./routes/reportRoutes"));
+app.use("/api/aganda", require("./routes/agandaRoutes"));
 
 const PORT = process.env.PORT || 5000;
 
