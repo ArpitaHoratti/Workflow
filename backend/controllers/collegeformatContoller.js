@@ -3,7 +3,7 @@ const path = require("path");
 const PizZip = require("pizzip");
 const Docxtemplater = require("docxtemplater");
 
-const generateAgenda = async (req, res) => {
+const generateCollegeformat = async (req, res) => {
     try {
         console.log("BODY:", req.body);
         // ==========================================
@@ -12,15 +12,17 @@ const generateAgenda = async (req, res) => {
         const {
             topic,
             date,
-            inaugurationtime,
-            welcomespeechtime,
-            resourceperson,
-            guestintrotime,
-            guestintroperson,
-            sessiontime,
-            sessionconductedperson,
-            votethankstime,
-            votethanksperson
+            time_and_duration,
+            organized_for,
+            objective,
+            resource_person,
+            faculty_coordinator,
+            hospitality_manager,
+            introduction_person,
+            votethanks_by,
+            media_manager,
+            feedback_manager,
+            praticipents
         } = req.body;
 
         // ==========================================
@@ -28,13 +30,13 @@ const generateAgenda = async (req, res) => {
         // ==========================================
         const templatePath = path.join(
             __dirname,
-            "../templates/agenda-template.docx"
+            "../templates/college-format-template.docx"
         );
         
 
-        // =============================================
+        // ==========================================
         // 4. CHECK TEMPLATE
-        // =============================================
+        // ==========================================
 
         if (!fs.existsSync(templatePath)) {
             return res
@@ -78,15 +80,17 @@ const generateAgenda = async (req, res) => {
         doc.render({
           topic,
           date,
-          inaugurationtime,
-          welcomespeechtime,
-          resourceperson,
-          guestintrotime,
-          guestintroperson,
-          sessiontime,
-          sessionconductedperson,
-          votethankstime,
-          votethanksperson
+          time_and_duration,
+          organized_for,
+          objective,
+          resource_person,
+          faculty_coordinator,
+          hospitality_manager,
+          introduction_person,
+          votethanks_by,
+          media_manager,
+          feedback_manager,
+          praticipents
         });
 
 
@@ -124,7 +128,7 @@ const generateAgenda = async (req, res) => {
         // 12. OUTPUT FILE
         // ==========================================
 
-        const fileName = `college-agenda-${Date.now()}.docx`;
+        const fileName = `college-format-${Date.now()}.docx`;
 
         const outputPath = path.join(
            generatedFolder,
@@ -148,7 +152,7 @@ const generateAgenda = async (req, res) => {
 
         res.download(
            outputPath,
-           "college-agenda.docx",
+           "college-format.docx",
         (error) => {
              if (error) {
              console.error("Download error:", error);
@@ -158,7 +162,7 @@ const generateAgenda = async (req, res) => {
 
     } catch (error) {
 
-    console.error("Agenda generation error:");
+    console.error("college format generation error:");
     console.error(error);
 
     //To Show detailed Docxtemplater errors
@@ -175,11 +179,11 @@ const generateAgenda = async (req, res) => {
     .status(500)
     .json({
         success: false,
-        message: "Failed to generate agenda",
+        message: "Failed to generate college format",
         error: error.message,
         details: error.properties || null
         });
     }
 };
 
-module.exports = {generateAgenda};
+module.exports = {generateCollegeformat};
